@@ -1,0 +1,148 @@
+<!-- client side -->
+
+<!doctype html>
+<html>
+
+<!-- HTML HEAD -->
+<head>
+  <title>Line Chart</title>
+  <!-- Source for Canvas JS - points to the web - needs internet -->
+  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+  <!-- Source for Socket.io - this one is local -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style>
+    canvas{
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- HTML layout -->
+  <h1>Quest 2</h1> <br>
+  <div id="message_disp"></div>
+  <div id="chartContainer" style="height: 300px; width: 100%;"></div><br/>
+  <div id="chartSpeedContainer" style="height: 300px; width: 100%;"></div>
+  <!-- Script to handle charting -->
+  <script>
+    var dps1 = [];
+    var dps2 = [];
+    var dps3 = [];
+    var chart = new CanvasJS.Chart("chartContainer", {
+      exportEnabled: true,
+      title :{
+        text: "Distance Sensor Data"
+      },
+      axisY: {
+        includeZero: false
+      },
+      data: [{
+        type: "line",
+        xValueType: "dateTime",
+        yValueFormatString: "####.00m",
+        showInLegend: true,
+        name: "Ultrasonic 1",
+        dataPoints: dps1
+        },
+        {       
+          type: "line",
+          xValueType: "dateTime",
+          yValueFormatString: "####.00m",
+          showInLegend: true,
+          name: "IR Sensor" ,
+          dataPoints: dps2
+        },
+        {
+          type: "line",
+          xValueType: "dateTime",
+          yValueFormatString: "####.00m",
+          showInLegend: true,
+          name: "Lidar" ,
+          dataPoints: dps3
+        }]
+    });
+    var dps4 = [];
+    var chart_speed = new CanvasJS.Chart("chartSpeedContainer", {
+      exportEnabled: true,
+      title :{
+        text: "Wheel Speed Sensor Data"
+      },
+      axisY: {
+        includeZero: false
+      },
+      data: [{
+        type: "line",
+        xValueType: "dateTime",
+        yValueFormatString: "####.00m/s",
+        showInLegend: true,
+        name: "Wheel Speed",
+        dataPoints: dps4
+        }]
+    });
+    // number of dataPoints visible at any point
+    var dataLength = 50;
+  </script>
+
+  <!-- Script to handle socket and also to update chart datapoints -->
+  <script>
+    var index1 = 0;
+    var index2 = 0;
+    var index3 = 0;
+    var index4 = 0;
+    var socket = io();
+    socket.on('Ultrasonic1', function(msg){
+      console.log(msg);
+      dps1.push({
+        x: index1,
+        y: msg
+      });
+      index1++;
+      if (dps1.length > dataLength) {
+        dps1.shift();
+      }
+      chart.render();
+    });
+    socket.on('Infrared', function(msg){
+      console.log(msg);
+      dps2.push({
+        x: index2,
+        y: msg
+      });
+      index2++;
+      if (dps2.length > dataLength) {
+        dps2.shift();
+      }
+      chart.render();
+    });
+    socket.on('Lidar', function(msg){
+      console.log(msg);
+      dps3.push({
+        x: index3,
+        y: msg
+      });
+      index3++;
+      if (dps3.length > dataLength) {
+        dps3.shift();
+      }
+      chart.render();
+    });
+    socket.on('Wheel', function(msg){
+      console.log(msg);
+      dps4.push({
+        x: index4,
+        y: msg
+      });
+      index4++;
+      if (dps4.length > dataLength) {
+        dps4.shift();
+      }
+      chart_speed.render();
+    });
+  </script>
+
+</body>
+
+</html>
